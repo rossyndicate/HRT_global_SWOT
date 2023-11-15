@@ -9,7 +9,32 @@ output: html_document
 library(tidyverse)
 library(googledrive)
 
-# authorize drive - requires .renviron document
+# authorize drive - requires .renviron document with valid email
 drive_auth(Sys.getenv("google_email"))
+```
+
+And now get the file list from the google folder.
+
+Get folder id
+```{r}
+folder <- drive_find(pattern = Sys.getenv("folder_name"))
+```
+
+And list files
+```{r}
+files <- drive_ls(folder$id)
+```
+
+And download files to data symlink folder (data symlink is not tracked in GH)
+```{r}
+download_from_drive <- function(filename, fileid, dest_filepath) {
+  drive_download(file = as_id(fileid), path = file.path(dest_filepath, filename))
+}
+
+pwalk(list(files$name, 
+           files$id, 
+           list("data/download/")),
+      download_from_drive
+)
 ```
 
