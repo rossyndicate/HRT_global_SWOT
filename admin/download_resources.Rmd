@@ -1,0 +1,15 @@
+---
+title: "Download Resources from Drive"
+author: "ROSSyndicate"
+date: "2023-11-15"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(googledrive)
+
+# authorize drive - requires .renviron document
+drive_auth(Sys.getenv("google_email"))
+```
+

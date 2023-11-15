@@ -8,6 +8,10 @@
 
 # User-specific files
 .Ruserdata
+.Renviron
 
 # RStudio files
 .Rproj.user/
+
+# data symlink
+data
