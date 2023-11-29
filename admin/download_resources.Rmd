@@ -11,6 +11,11 @@ library(googledrive)
 
 # authorize drive - requires .renviron document with valid email
 drive_auth(Sys.getenv("google_email"))
+
+# where to save zips to
+zip_dir <- "data/download/zip/"
+# where to save unzips to
+unzip_dir <- "data/download/"
 ```
 
 And now get the file list from the google folder.
@@ -33,8 +38,16 @@ download_from_drive <- function(filename, fileid, dest_filepath) {
 
 pwalk(list(files$name, 
            files$id, 
-           list("data/download/")),
+           list(zip_dir)),
       download_from_drive
 )
+```
+
+# Unzip files downloaded from drive
+
+```{r}
+zips <- list.files(zip_dir, full.names = T, pattern = '.zip') 
+
+map(zips, function(z){unzip(z, exdir = unzip_dir)})
 ```
 
