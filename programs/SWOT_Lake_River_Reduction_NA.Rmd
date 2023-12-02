@@ -1,0 +1,73 @@
+---
+title: "SWOT Lake/River Reduction to North America"
+author: "ROSSyndicate"
+date: "2023-11-29"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+```{r}
+library(tidyverse)
+library(sf)
+library(raster)
+library(spData)
+library(plotly)
+
+geo_dir <- "data/download/"
+country_dir <- "~/OneDrive - Colostate/GIS/boundaries/countries/"
+```
+
+# Subset SWOT-visible lakes and rivers
+
+The PLD (prior lake database) and SWORD geos are downright huge. For the time
+being, we're just going to grab SWOT-visible SWORD nodes (\>=90m for rivers,
+\>=250m for lakes) and the overlapping PLD geos for North America, and then save
+those reduced files for other aspects of this review.
+
+```{r}
+# read in the prior lake database
+pld <- read_sf("data/download/SWOT_PLD.gdb/")
+# make valid for other operations
+pld <- st_make_valid(pld)
+
+# grab north america extent from spData::world
+na <- world %>% filter(continent == "North America")
+# filter pld for NA only
+pld_na <- pld[na,]
+# remove pld, it's huge
+rm(pld)
+
+# load the SWORD database for north america
+na_sword <- read_sf("data/download/SWORD_v16_gpkg/na_sword_reaches_v16.gpkg")
+
+```
+
+Filter sword to \>=90 width (minimum advertised visibility), reaches will
+include width of lakes. Lake areas are flagged, too. Advertised width visibility
+250m.
+
+-   type: Type identifier for a node or reach: 1 -- river, 2 -- lake off river,
+    3 -- lake on river, 4 -- dam or waterfall, 5 -- unreliable topology, 6 --
+    ghost reach/node.
+
+Filter: type == 1 & width \>=90 or type %in% c(2,3) & width \>= 250
+
+```{r}
+na_sword_min <- na_sword %>% 
+  filter((type == 1 & width >=90) | (type %in% c(2,3) & width >= 250))
+```
+
+Filter PLD for overlap with filtered sword.
+
+```{r}
+pld_sword_min_overlap <- pld_na[na_sword_min,]
+```
+
+Save files for use elsewhere.
+
+```{r}
+write_sf(pld_sword_min_overlap, "data/reduced_geos/NA_PLD_overlap_with_SWORD_min.gpkg")
+write_sf(na_sword_min, "data/reduced_geos/NA_SWORD_min.gpkg")
+```

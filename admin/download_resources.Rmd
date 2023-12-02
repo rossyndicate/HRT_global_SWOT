@@ -3,6 +3,9 @@ title: "Download Resources from Drive"
 author: "ROSSyndicate"
 date: "2023-11-15"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: 80
 ---
 
 ```{r}
@@ -11,6 +14,11 @@ library(googledrive)
 
 # authorize drive - requires .renviron document with valid email
 drive_auth(Sys.getenv("google_email"))
+
+# where to save zips to
+zip_dir <- "data/download/zip/"
+# where to save unzips to
+unzip_dir <- "data/download/"
 ```
 
 And now get the file list from the google folder.
@@ -33,8 +41,24 @@ download_from_drive <- function(filename, fileid, dest_filepath) {
 
 pwalk(list(files$name, 
            files$id, 
-           list("data/download/")),
+           list(zip_dir)),
       download_from_drive
 )
+```
+
+# Unzip files downloaded from drive
+
+```{r}
+zips <- list.files(zip_dir, full.names = T, pattern = '.zip') 
+
+map(zips, function(z){unzip(z, exdir = unzip_dir)})
+```
+
+# And download the SWORD gdb since the nc file is being finnicky and I don't have time to deal with it right now
+
+```{r}
+download.file("https://zenodo.org/records/10013982/files/SWORD_v16_gpkg.zip", method = "curl", destfile = "data/download/zip/SWORD_v16_gpkg")
+
+unzip("data/download/zip/SWORD_v16_gpkg", exdir = unzip_dir)
 ```
 
